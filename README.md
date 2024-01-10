@@ -22,3 +22,7 @@ Better RSS feeds
 ### Force sitename as author
 ```apply_filters('wpu_better_rss__force_sitename_as_author__enable', false);```
 
+
+### Add copyright in feed
+```apply_filters('wpu_better_rss__add_copyright_in_feed__enable', false);```
+

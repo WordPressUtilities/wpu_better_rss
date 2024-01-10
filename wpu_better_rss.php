@@ -4,7 +4,7 @@ Plugin Name: WPU Better RSS
 Plugin URI: https://github.com/WordPressUtilities/wpu_better_rss
 Update URI: https://github.com/WordPressUtilities/wpu_better_rss
 Description: Better RSS feeds
-Version: 0.1.0
+Version: 0.2.0
 Author: Darklg
 Author URI: https://darklg.me/
 Text Domain: wpu_better_rss
@@ -16,7 +16,7 @@ License URI: https://opensource.org/licenses/MIT
 */
 
 class WPUBetterRSS {
-    private $plugin_version = '0.1.0';
+    private $plugin_version = '0.2.0';
     private $plugin_settings = array(
         'id' => 'wpu_better_rss',
         'name' => 'WPU Better RSS'
@@ -45,16 +45,9 @@ class WPUBetterRSS {
     ---------------------------------------------------------- */
 
     function rss_features() {
+        $hook_content = get_option('rss_use_excerpt') ? 'the_excerpt_rss' : 'the_content_feed';
         if (apply_filters('wpu_better_rss__display_thumbnail_before_content__enable', false)) {
-            $use_excerpt = get_option('rss_use_excerpt');
-            if ($use_excerpt) {
-                add_filter('the_excerpt_rss', array(&$this, 'display_thumbnail_before_content'), 10, 1);
-            } else {
-                add_filter('the_content_feed', array(&$this, 'display_thumbnail_before_content'), 10, 1);
-            }
-        }
-        if (apply_filters('wpu_better_rss__add_tracking_to_links__enable', false)) {
-            add_filter('the_permalink_rss', array(&$this, 'add_tracking_to_links'));
+            add_filter($hook_content, array(&$this, 'display_thumbnail_before_content'), 20, 1);
         }
         if (apply_filters('wpu_better_rss__add_enclosure_field__enable', false)) {
             add_action('rss2_item', array(&$this, 'add_enclosure_field'));
@@ -62,6 +55,10 @@ class WPUBetterRSS {
         if (apply_filters('wpu_better_rss__force_sitename_as_author__enable', false)) {
             add_filter('the_author', array(&$this, 'force_sitename_as_author'), 40);
         }
+        if (apply_filters('wpu_better_rss__add_copyright_in_feed__enable', false)) {
+            add_filter($hook_content, array(&$this, 'add_copyright_in_feed'), 50, 1);
+        }
+        add_filter('the_permalink_rss', array(&$this, 'add_tracking_to_links'));
     }
 
     /* ----------------------------------------------------------
@@ -85,11 +82,14 @@ class WPUBetterRSS {
     ---------------------------------------------------------- */
 
     function add_tracking_to_links($permalink) {
-        $utm_params = array(
-            'utm_source' => 'rss',
-            'utm_medium' => 'rss',
-            'utm_campaign' => 'rss_feed_campaign'
-        );
+        $utm_params = array();
+        if (apply_filters('wpu_better_rss__add_tracking_to_links__enable', false)) {
+            $utm_params = array(
+                'utm_source' => 'rss',
+                'utm_medium' => 'rss',
+                'utm_campaign' => 'rss_feed_campaign'
+            );
+        }
         return add_query_arg($utm_params, $permalink);
     }
 
@@ -129,10 +129,21 @@ class WPUBetterRSS {
     ---------------------------------------------------------- */
 
     function force_sitename_as_author($display_name) {
-        if (is_feed()) {
-            return get_bloginfo('name');
-        }
-        return $display_name;
+        return is_feed() ? get_bloginfo('name') : $display_name;
+    }
+
+    /* ----------------------------------------------------------
+      Add copyright in feed
+    ---------------------------------------------------------- */
+
+    function add_copyright_in_feed($content) {
+        $copyright = '<hr />';
+        $copyright .= '<p>';
+        $copyright .= '&copy; ' . date('Y') . ' ';
+        $copyright .= get_bloginfo('name') . ' - ';
+        $copyright .= '<a href="' . $this->add_tracking_to_links(get_permalink()) . '">' . get_the_title() . '</a>';
+        $copyright .= '</p>';
+        return $content . $copyright;
     }
 
 }
