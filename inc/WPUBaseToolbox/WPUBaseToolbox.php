@@ -4,7 +4,7 @@ namespace wpu_better_rss;
 /*
 Class Name: WPU Base Toolbox
 Description: Cool helpers for WordPress Plugins
-Version: 0.11.0
+Version: 0.11.1
 Class URI: https://github.com/WordPressUtilities/wpubaseplugin
 Author: Darklg
 Author URI: https://darklg.me/
@@ -12,8 +12,10 @@ License: MIT License
 License URI: https://opensource.org/licenses/MIT
 */
 
+defined('ABSPATH') || die;
+
 class WPUBaseToolbox {
-    private $plugin_version = '0.11.0';
+    private $plugin_version = '0.11.1';
     public function __construct() {
         add_action('wp_enqueue_scripts', array(&$this,
             'form_scripts'

@@ -1,10 +1,11 @@
 <?php
+defined('ABSPATH') || die;
 /*
 Plugin Name: WPU Better RSS
 Plugin URI: https://github.com/WordPressUtilities/wpu_better_rss
 Update URI: https://github.com/WordPressUtilities/wpu_better_rss
 Description: Better RSS feeds
-Version: 0.2.0
+Version: 0.2.1
 Author: Darklg
 Author URI: https://darklg.me/
 Text Domain: wpu_better_rss
@@ -16,7 +17,7 @@ License URI: https://opensource.org/licenses/MIT
 */
 
 class WPUBetterRSS {
-    private $plugin_version = '0.2.0';
+    private $plugin_version = '0.2.1';
     private $plugin_settings = array(
         'id' => 'wpu_better_rss',
         'name' => 'WPU Better RSS'
@@ -36,7 +37,7 @@ class WPUBetterRSS {
         }
         $this->plugin_description = __('Better RSS feeds', 'wpu_better_rss');
         # TOOLBOX
-        require_once dirname(__FILE__) . '/inc/WPUBaseToolbox/WPUBaseToolbox.php';
+        require_once __DIR__ . '/inc/WPUBaseToolbox/WPUBaseToolbox.php';
         $this->basetoolbox = new \wpu_better_rss\WPUBaseToolbox();
     }
 
@@ -58,7 +59,9 @@ class WPUBetterRSS {
         if (apply_filters('wpu_better_rss__add_copyright_in_feed__enable', false)) {
             add_filter($hook_content, array(&$this, 'add_copyright_in_feed'), 50, 1);
         }
-        add_filter('the_permalink_rss', array(&$this, 'add_tracking_to_links'));
+        if (apply_filters('wpu_better_rss__add_tracking_to_links__enable', true)) {
+            add_filter('the_permalink_rss', array(&$this, 'add_tracking_to_links'));
+        }
     }
 
     /* ----------------------------------------------------------
@@ -137,13 +140,14 @@ class WPUBetterRSS {
     ---------------------------------------------------------- */
 
     function add_copyright_in_feed($content) {
-        $copyright = '<hr />';
-        $copyright .= '<p>';
-        $copyright .= '&copy; ' . date('Y') . ' ';
-        $copyright .= get_bloginfo('name') . ' - ';
-        $copyright .= '<a href="' . $this->add_tracking_to_links(get_permalink()) . '">' . get_the_title() . '</a>';
-        $copyright .= '</p>';
-        return $content . $copyright;
+        $copyright_before = apply_filters('wpu_better_rss__add_copyright_in_feed__before_content', '<hr /><p>');
+        $copyright_after = apply_filters('wpu_better_rss__add_copyright_in_feed__after_content', '</p>');
+        $copyright_parts = apply_filters('wpu_better_rss__add_copyright_in_feed__copyright_parts', array(
+            'copy' => '&copy; ' . date('Y') . ' ' . get_bloginfo('name'),
+            'title' => '<a href="' . $this->add_tracking_to_links(get_permalink()) . '">' . get_the_title() . '</a>'
+        ));
+
+        return $content . $copyright_before . implode(' - ', $copyright_parts) . $copyright_after;
     }
 
 }
