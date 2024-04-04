@@ -5,19 +5,20 @@ Plugin Name: WPU Better RSS
 Plugin URI: https://github.com/WordPressUtilities/wpu_better_rss
 Update URI: https://github.com/WordPressUtilities/wpu_better_rss
 Description: Better RSS feeds
-Version: 0.2.1
+Version: 0.2.2
 Author: Darklg
 Author URI: https://darklg.me/
 Text Domain: wpu_better_rss
 Domain Path: /lang
 Requires at least: 6.2
 Requires PHP: 8.0
+Network: Optional
 License: MIT License
 License URI: https://opensource.org/licenses/MIT
 */
 
 class WPUBetterRSS {
-    private $plugin_version = '0.2.1';
+    private $plugin_version = '0.2.2';
     private $plugin_settings = array(
         'id' => 'wpu_better_rss',
         'name' => 'WPU Better RSS'
@@ -38,7 +39,9 @@ class WPUBetterRSS {
         $this->plugin_description = __('Better RSS feeds', 'wpu_better_rss');
         # TOOLBOX
         require_once __DIR__ . '/inc/WPUBaseToolbox/WPUBaseToolbox.php';
-        $this->basetoolbox = new \wpu_better_rss\WPUBaseToolbox();
+        $this->basetoolbox = new \wpu_better_rss\WPUBaseToolbox(array(
+            'need_form_js' => false
+        ));
     }
 
     /* ----------------------------------------------------------

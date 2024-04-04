@@ -4,7 +4,7 @@ namespace wpu_better_rss;
 /*
 Class Name: WPU Base Toolbox
 Description: Cool helpers for WordPress Plugins
-Version: 0.11.1
+Version: 0.13.0
 Class URI: https://github.com/WordPressUtilities/wpubaseplugin
 Author: Darklg
 Author URI: https://darklg.me/
@@ -15,15 +15,27 @@ License URI: https://opensource.org/licenses/MIT
 defined('ABSPATH') || die;
 
 class WPUBaseToolbox {
-    private $plugin_version = '0.11.1';
-    public function __construct() {
+    private $plugin_version = '0.13.0';
+    private $args = array();
+    private $default_module_args = array(
+        'need_form_js' => true
+    );
+
+    public function __construct($args = array()) {
+        if (!is_array($args)) {
+            $args = array();
+        }
+        $this->args = array_merge($this->default_module_args, $args);
+
         add_action('wp_enqueue_scripts', array(&$this,
             'form_scripts'
         ));
     }
 
     function form_scripts() {
-        wp_enqueue_script(__NAMESPACE__ . '-wpubasetoolbox-form-validation', plugins_url('assets/form-validation.js', __FILE__), array(), $this->plugin_version);
+        if ($this->args['need_form_js']) {
+            wp_enqueue_script(__NAMESPACE__ . '-wpubasetoolbox-form-validation', plugins_url('assets/form-validation.js', __FILE__), array(), $this->plugin_version);
+        }
     }
 
     /* ----------------------------------------------------------
@@ -393,6 +405,60 @@ class WPUBaseToolbox {
         }
 
         return trim($html);
+    }
+
+    function array_to_html_table($array, $args = array()) {
+
+        /* Ensure array is ok */
+        if (empty($array) || !is_array($array)) {
+            return '';
+        }
+
+        /* Fix args */
+        $default_args = array(
+            'table_classname' => 'widefat',
+            'htmlspecialchars_td' => true,
+            'htmlspecialchars_th' => true,
+            'colnames' => array()
+        );
+        if (!is_array($args)) {
+            $args = array();
+        }
+        $args = array_merge($default_args, $args);
+
+        $html = '';
+
+        /* HEAD */
+        $html .= '<thead><tr>';
+        foreach ($array[0] as $key => $value) {
+            $label = $key;
+            if (isset($args['colnames'][$key])) {
+                $label = $args['colnames'][$key];
+            }
+            if ($args['htmlspecialchars_th']) {
+                $label = htmlspecialchars($label);
+            }
+            $html .= '<th>' . $label . '</th>';
+        }
+        $html .= '</tr></thead>';
+
+        /* CONTENT */
+        $html .= '<tbody>';
+        foreach ($array as $line) {
+            $html .= '<tr>';
+            foreach ($line as $value) {
+                if ($args['htmlspecialchars_td']) {
+                    $value = htmlspecialchars($value);
+                }
+                $html .= '<td>' . $value . '</td>';
+            }
+            $html .= '</tr>';
+        }
+        $html .= '</tbody>';
+
+        /* Return content */
+        $html = '<table class="' . esc_attr($args['table_classname']) . '">' . $html . '</table>';
+        return $html;
     }
 
 }
