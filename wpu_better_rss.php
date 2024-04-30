@@ -5,7 +5,7 @@ Plugin Name: WPU Better RSS
 Plugin URI: https://github.com/WordPressUtilities/wpu_better_rss
 Update URI: https://github.com/WordPressUtilities/wpu_better_rss
 Description: Better RSS feeds
-Version: 0.2.2
+Version: 0.3.0
 Author: Darklg
 Author URI: https://darklg.me/
 Text Domain: wpu_better_rss
@@ -18,7 +18,7 @@ License URI: https://opensource.org/licenses/MIT
 */
 
 class WPUBetterRSS {
-    private $plugin_version = '0.2.2';
+    private $plugin_version = '0.3.0';
     private $plugin_settings = array(
         'id' => 'wpu_better_rss',
         'name' => 'WPU Better RSS'
@@ -75,12 +75,13 @@ class WPUBetterRSS {
         add_filter('max_srcset_image_width', function () {
             return 1;
         });
-        $thumb = '';
+        $thumbnail = '';
+        $thumbnail_size = apply_filters('wpu_better_rss__display_thumbnail_before_content__thumbnail_size', 'medium');
         if (get_post_type() == 'post') {
-            $image = wp_get_attachment_image(get_post_thumbnail_id(get_the_ID()), 'medium');
-            $thumb = wpautop($image);
+            $image = wp_get_attachment_image(get_post_thumbnail_id(get_the_ID()), $thumbnail_size);
+            $thumbnail = wpautop($image);
         }
-        return $thumb . $text;
+        return $thumbnail . $text;
     }
 
     /* ----------------------------------------------------------
