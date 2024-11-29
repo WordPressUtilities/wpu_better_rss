@@ -5,7 +5,7 @@ Plugin Name: WPU Better RSS
 Plugin URI: https://github.com/WordPressUtilities/wpu_better_rss
 Update URI: https://github.com/WordPressUtilities/wpu_better_rss
 Description: Better RSS feeds
-Version: 0.3.0
+Version: 0.4.0
 Author: Darklg
 Author URI: https://darklg.me/
 Text Domain: wpu_better_rss
@@ -18,7 +18,7 @@ License URI: https://opensource.org/licenses/MIT
 */
 
 class WPUBetterRSS {
-    private $plugin_version = '0.3.0';
+    private $plugin_version = '0.4.0';
     private $plugin_settings = array(
         'id' => 'wpu_better_rss',
         'name' => 'WPU Better RSS'
@@ -27,16 +27,23 @@ class WPUBetterRSS {
     private $plugin_description;
 
     public function __construct() {
-        add_action('plugins_loaded', array(&$this, 'plugins_loaded'));
+        add_action('plugins_loaded', array(&$this, 'load_dependencies'));
+        add_action('init', array(&$this, 'load_translation'));
         add_action('plugins_loaded', array(&$this, 'rss_features'));
     }
 
-    public function plugins_loaded() {
-        # TRANSLATION
-        if (!load_plugin_textdomain('wpu_better_rss', false, dirname(plugin_basename(__FILE__)) . '/lang/')) {
-            load_muplugin_textdomain('wpu_better_rss', dirname(plugin_basename(__FILE__)) . '/lang/');
+    # Translations
+    public function load_translation(){
+        $lang_dir = dirname(plugin_basename(__FILE__)) . '/lang/';
+        if (strpos(__DIR__, 'mu-plugins') !== false) {
+            load_muplugin_textdomain('wpu_better_rss', $lang_dir);
+        } else {
+            load_plugin_textdomain('wpu_better_rss', false, $lang_dir);
         }
         $this->plugin_description = __('Better RSS feeds', 'wpu_better_rss');
+    }
+
+    public function load_dependencies() {
         # TOOLBOX
         require_once __DIR__ . '/inc/WPUBaseToolbox/WPUBaseToolbox.php';
         $this->basetoolbox = new \wpu_better_rss\WPUBaseToolbox(array(
@@ -48,7 +55,7 @@ class WPUBetterRSS {
       Features
     ---------------------------------------------------------- */
 
-    function rss_features() {
+    public function rss_features() {
         $hook_content = get_option('rss_use_excerpt') ? 'the_excerpt_rss' : 'the_content_feed';
         if (apply_filters('wpu_better_rss__display_thumbnail_before_content__enable', false)) {
             add_filter($hook_content, array(&$this, 'display_thumbnail_before_content'), 20, 1);
@@ -71,7 +78,7 @@ class WPUBetterRSS {
       Display thumb before content
     ---------------------------------------------------------- */
 
-    function display_thumbnail_before_content($text) {
+    public function display_thumbnail_before_content($text) {
         add_filter('max_srcset_image_width', function () {
             return 1;
         });
@@ -88,7 +95,7 @@ class WPUBetterRSS {
       Add tracking to links
     ---------------------------------------------------------- */
 
-    function add_tracking_to_links($permalink) {
+    public function add_tracking_to_links($permalink) {
         $utm_params = array();
         if (apply_filters('wpu_better_rss__add_tracking_to_links__enable', false)) {
             $utm_params = array(
@@ -105,7 +112,7 @@ class WPUBetterRSS {
       Thanks to https://github.com/kasparsd/feed-image-enclosure/blob/master/feed-image-enclosure.php
     ---------------------------------------------------------- */
 
-    function add_enclosure_field() {
+    public function add_enclosure_field() {
         if (!has_post_thumbnail()) {
             return;
         }
@@ -135,7 +142,7 @@ class WPUBetterRSS {
       Force sitename as author
     ---------------------------------------------------------- */
 
-    function force_sitename_as_author($display_name) {
+    public function force_sitename_as_author($display_name) {
         return is_feed() ? get_bloginfo('name') : $display_name;
     }
 
@@ -143,7 +150,7 @@ class WPUBetterRSS {
       Add copyright in feed
     ---------------------------------------------------------- */
 
-    function add_copyright_in_feed($content) {
+    public function add_copyright_in_feed($content) {
         $copyright_before = apply_filters('wpu_better_rss__add_copyright_in_feed__before_content', '<hr /><p>');
         $copyright_after = apply_filters('wpu_better_rss__add_copyright_in_feed__after_content', '</p>');
         $copyright_parts = apply_filters('wpu_better_rss__add_copyright_in_feed__copyright_parts', array(
